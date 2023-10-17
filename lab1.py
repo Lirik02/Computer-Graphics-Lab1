@@ -1,25 +1,30 @@
 import PySimpleGUI as sg
+import re
 import colorsys
 
 sg.theme('DarkAmber')   # Add a touch of color
 # All the stuff inside your window.
 tab1_layout =  [[sg.Text('CMYK'), sg.Text('C'), sg.InputText(key='T_CMYK_C', enable_events=True, default_text='0'), sg.Text('M'), sg.InputText(key='T_CMYK_M', enable_events=True, default_text='0'), sg.Text('Y'), sg.InputText(key='T_CMYK_Y', enable_events=True, default_text='0'), sg.Text('K'), sg.InputText(key='T_CMYK_K', enable_events=True, default_text='0')],
             [sg.Text('RGB'), sg.Text('R'), sg.InputText(key='T_RGB_R', enable_events=True, default_text='0'), sg.Text('G'), sg.InputText(key='T_RGB_G', enable_events=True, default_text='0'), sg.Text('B'), sg.InputText(key='T_RGB_B', enable_events=True, default_text='0')],
-            [sg.Text('HSV'), sg.Text('H'), sg.InputText(key='T_HSV_H', enable_events=True, default_text='0'), sg.Text('S'), sg.InputText(key='T_HSV_S', enable_events=True, default_text='0'), sg.Text('V'), sg.InputText(key='T_HSV_V', enable_events=True, default_text='0')],
-            [sg.Button('Submit Text input')]]
+            [sg.Text('HSV'), sg.Text('H'), sg.InputText(key='T_HSV_H', enable_events=True, default_text='0'), sg.Text('S'), sg.InputText(key='T_HSV_S', enable_events=True, default_text='0'), sg.Text('V'), sg.InputText(key='T_HSV_V', enable_events=True, default_text='0')] ]
 
 tab2_layout = [[sg.Text('CMYK'), sg.Text('C'), sg.Slider(range=(0.0, 100.0), tick_interval=0.1, orientation="horizontal", key='SL_CMYK_C', enable_events=True), sg.Text('M'), sg.Slider(range=(0.0, 100.0), orientation="horizontal", key='SL_CMYK_M', enable_events=True), sg.Text('Y'), sg.Slider(range=(0.0, 100.0), orientation="horizontal", key='SL_CMYK_Y', enable_events=True), sg.Text('K'), sg.Slider(range=(0.0, 100.0), orientation="horizontal", key='SL_CMYK_K', enable_events=True)],
             [sg.Text('RGB'), sg.Text('R'), sg.Slider(range=(0, 255), orientation="horizontal", key='SL_RGB_R', enable_events=True), sg.Text('G'), sg.Slider(range=(0, 255), orientation="horizontal", key='SL_RGB_G', enable_events=True), sg.Text('B'), sg.Slider(range=(0, 255), orientation="horizontal", key='SL_RGB_B', enable_events=True)],
-            [sg.Text('HSV'), sg.Text('H'), sg.Slider(range=(0.0, 360.0), orientation="horizontal", key='SL_HSV_H', enable_events=True), sg.Text('S'), sg.Slider(range=(0, 100), orientation="horizontal", key='SL_HSV_S', enable_events=True), sg.Text('V'), sg.Slider(range=(0, 100), orientation="horizontal", key='SL_HSV_V', enable_events=True)],
-            [sg.Button('Submit Slider input')]]
+            [sg.Text('HSV'), sg.Text('H'), sg.Slider(range=(0.0, 360.0), orientation="horizontal", key='SL_HSV_H', enable_events=True), sg.Text('S'), sg.Slider(range=(0, 100), orientation="horizontal", key='SL_HSV_S', enable_events=True), sg.Text('V'), sg.Slider(range=(0, 100), orientation="horizontal", key='SL_HSV_V', enable_events=True)] ]
+
+tab3_layout = [[sg.Input(text_color='black', enable_events=True, disabled = True, key='-IN-', font=('Arial Bold', 12)), sg.ColorChooserButton("Choose Color")]]
+
+Output_layout = [[sg.Text('CMYK: '), sg.Text(key='CMYK')],
+                 [sg.Text('RGB: '), sg.Text(key='RGB')],
+                 [sg.Text('HSV: '), sg.Text(key='HSV')],
+                 [sg.Text('Palette: '), sg.Text(key='PAlette')]]
 
 layout = [   
-            [sg.Input(text_color='black', enable_events=True, disabled = True, key='-IN-', font=('Arial Bold', 12)), sg.ColorChooserButton("Choose Color")],
-            [sg.Graph(canvas_size=(400, 400), graph_bottom_left=(0, 0), graph_top_right=(400, 400), key="graph")],
-            [sg.TabGroup([[sg.Tab('Tab 1', tab1_layout), sg.Tab('Tab 2', tab2_layout)]])] ]
+            [sg.TabGroup([[sg.Tab('Text', tab1_layout), sg.Tab('Slider', tab2_layout), sg.Tab('Palette', tab3_layout)]])],
+            [sg.Graph(canvas_size=(400, 400), graph_bottom_left=(0, 0), graph_top_right=(400, 400), key="graph"), Output_layout] ]
 
 # Create the Window
-window = sg.Window('Color library', layout)
+window = sg.Window('Color library', layout, resizable=True)
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
@@ -29,11 +34,6 @@ while True:
         break
     if event == '-IN-':
       window['graph'].DrawRectangle((200, 200), (250, 300), fill_color=values['-IN-'])
-    #   window['graph'].update(color=values['-IN-'])
-    if event == 'Submit Text input':
-        print('You entered ', values[10], " ", values[1], " ", values[4])
-    if event == 'Submit Slider input':
-        print('You entered ', values[10], " ", values[1], " ", values[4])
 
     # Обработка RGB слайдера
 
@@ -49,6 +49,7 @@ while True:
         window['T_RGB_R'].update(r * 2.55)
         window['T_RGB_G'].update(g * 2.55)
         window['T_RGB_B'].update(b * 2.55)
+        window['RGB'].update('R: ' + str(int(r * 2.55)) + ' G: ' + str(int(g * 2.55)) + ' B: ' + str(int(b * 2.55)))
 
         if (max(r, g, b) != 0):
             window['SL_CMYK_K'].update(float(100 - max(r, g, b)))
@@ -59,6 +60,7 @@ while True:
             window['T_CMYK_C'].update(float((c_max - r) / c_max) * 100)
             window['T_CMYK_M'].update(float((c_max - g) / c_max) * 100)
             window['T_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
+            window['CMYK'].update('C: ' + str(int(((c_max - r) / c_max) * 100)) + ' M: ' + str(int(((c_max - g) / c_max) * 100)) + ' Y: ' + str(int(((c_max - b) / c_max) * 100)) + ' K: ' + str(int(100 - c_max)))
             text_color = '#'
             if len(format(int(values['SL_RGB_R']), 'X')) < 2:
                 text_color = text_color + '0' + format(int(values['SL_RGB_R']), 'X')
@@ -99,6 +101,7 @@ while True:
         window['SL_HSV_H'].update(h)
         window['SL_HSV_S'].update(s)
         window['SL_HSV_V'].update(v)
+        window['HSV'].update('H: ' + str(int(h)) + ' S: ' + str(int(s)) + ' V: ' + str(int(v)))
 
         window['-IN-'].update(text_color)
 
@@ -119,6 +122,8 @@ while True:
         window['SL_RGB_R'].update(r * 2.55)
         window['SL_RGB_G'].update(g * 2.55)
         window['SL_RGB_B'].update(b * 2.55)
+        window['RGB'].update('R: ' + str(int(r * 2.55)) + ' G: ' + str(int(g * 2.55)) + ' B: ' + str(int(b * 2.55)))
+
 
         if (max(r, g, b) != 0):
             window['T_CMYK_K'].update(float(100 - max(r, g, b)))
@@ -129,6 +134,7 @@ while True:
             window['SL_CMYK_C'].update(float((c_max - r) / c_max) * 100)
             window['SL_CMYK_M'].update(float((c_max - g) / c_max) * 100)
             window['SL_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
+            window['CMYK'].update('C: ' + str(int(((c_max - r) / c_max) * 100)) + ' M: ' + str(int(((c_max - g) / c_max) * 100)) + ' Y: ' + str(int(((c_max - b) / c_max) * 100)) + ' K: ' + str(int(100 - c_max)))
             text_color = '#'
             if len(format(int(float(values['T_RGB_R'])), 'X')) < 2:
                 text_color = text_color + '0' + format(int(float(values['T_RGB_R'])), 'X')
@@ -169,6 +175,7 @@ while True:
         window['SL_HSV_H'].update(h)
         window['SL_HSV_S'].update(s)
         window['SL_HSV_V'].update(v)
+        window['HSV'].update('H: ' + str(int(h)) + ' S: ' + str(int(s)) + ' V: ' + str(int(v)))
 
         window['-IN-'].update(text_color)
 
@@ -183,10 +190,12 @@ while True:
         window['T_CMYK_M'].update(values['SL_CMYK_M'])
         window['T_CMYK_Y'].update(values['SL_CMYK_Y'])
         window['T_CMYK_K'].update(values['SL_CMYK_K'])
+        window['CMYK'].update('C: ' + str(values['SL_CMYK_C']) + ' M: ' + str(values['SL_CMYK_M']) + ' Y: ' + str(values['SL_CMYK_Y']) + ' K: ' + str(values['SL_CMYK_K']))
 
         r = float(0.0255 * (100 - values['SL_CMYK_C']) * (100 - values['SL_CMYK_K']))
         g = float(0.0255 * (100 - values['SL_CMYK_M']) * (100 - values['SL_CMYK_K']))
         b = float(0.0255 * (100 - values['SL_CMYK_Y']) * (100 - values['SL_CMYK_K']))
+        window['RGB'].update('R: ' + str(int(r)) + ' G: ' + str(int(g)) + ' B: ' + str(int(b)))
         if abs(r - round(r)) < 0.001:
             r = round(r)
         if abs(g - round(g)) < 0.001:
@@ -245,6 +254,7 @@ while True:
         window['SL_HSV_H'].update(h)
         window['SL_HSV_S'].update(s)
         window['SL_HSV_V'].update(v)
+        window['HSV'].update('H: ' + str(int(h)) + ' S: ' + str(int(s)) + ' V: ' + str(int(v)))
 
         window['-IN-'].update(text_color)
 
@@ -259,10 +269,12 @@ while True:
         window['SL_CMYK_M'].update(int(float(values['T_CMYK_M'])))
         window['SL_CMYK_Y'].update(int(float(values['T_CMYK_Y'])))
         window['SL_CMYK_K'].update(int(float(values['T_CMYK_K'])))
+        window['CMYK'].update('C: ' + values['T_CMYK_C'] + ' M: ' + values['T_CMYK_M'] + ' Y: ' + values['T_CMYK_Y'] + ' K: ' + values['T_CMYK_K'])
 
         r = float(0.0255 * (100 - int(float(values['T_CMYK_C']))) * (100 - int(float(values['T_CMYK_K']))))
         g = float(0.0255 * (100 - int(float(values['T_CMYK_M']))) * (100 - int(float(values['T_CMYK_K']))))
         b = float(0.0255 * (100 - int(float(values['T_CMYK_Y']))) * (100 - int(float(values['T_CMYK_K']))))
+        window['RGB'].update('R: ' + str(int(r)) + ' G: ' + str(int(g)) + ' B: ' + str(int(b)))
         if abs(r - round(r)) < 0.001:
             r = round(r)
         if abs(g - round(g)) < 0.001:
@@ -321,6 +333,7 @@ while True:
         window['SL_HSV_H'].update(h)
         window['SL_HSV_S'].update(s)
         window['SL_HSV_V'].update(v)
+        window['HSV'].update('H: ' + str(int(h)) + ' S: ' + str(int(s)) + ' V: ' + str(int(v)))
 
         window['-IN-'].update(text_color)
 
@@ -333,12 +346,13 @@ while True:
         window['T_HSV_H'].update(values['SL_HSV_H'])
         window['T_HSV_S'].update(values['SL_HSV_S'])
         window['T_HSV_V'].update(values['SL_HSV_V'])
+        window['HSV'].update('H: ' + str(int(values['SL_HSV_H'])) + ' S: ' + str(int(values['SL_HSV_S'])) + ' V: ' + str(int(values['SL_HSV_V'])))
 
         h = float(values['SL_HSV_H'])
         s = float(values['SL_HSV_S'])
         v = float(values['SL_HSV_V'])
 
-        h_ = (h / 60) % 6
+        h_ = int(h / 60) % 6
         v_min = (100 - s) * v / 100
         a = (v - v_min) * (h % 60) / 60
         v_inc = v_min + a
@@ -379,6 +393,7 @@ while True:
         window['T_RGB_R'].update(r)
         window['T_RGB_G'].update(g)
         window['T_RGB_B'].update(b)
+        window['RGB'].update('R: ' + str(int(r)) + ' G: ' + str(int(g)) + ' B: ' + str(int(b)))
         text_color = '#'
 
         if abs(r - round(r, 2)) < 0.001:
@@ -403,6 +418,7 @@ while True:
             window['SL_CMYK_C'].update(float((c_max - r) / c_max) * 100)
             window['SL_CMYK_M'].update(float((c_max - g) / c_max) * 100)
             window['SL_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
+            window['CMYK'].update('C: ' + str(int(((c_max - r) / c_max) * 100)) + ' M: ' + str(int(((c_max - g) / c_max) * 100)) + ' Y: ' + str(int(((c_max - b) / c_max) * 100)) + ' K: ' + str(int(100 - c_max)))
             r *= 2.55
             g *= 2.55
             b *= 2.55
@@ -434,13 +450,14 @@ while True:
            
         window['SL_HSV_H'].update(int(float(values['T_HSV_H'])))
         window['SL_HSV_S'].update(int(float(values['T_HSV_S'])))
-        window['SL_HSV_V'].update(int(float(values['T_HSV_H'])))
+        window['SL_HSV_V'].update(int(float(values['T_HSV_V'])))
+        window['HSV'].update('H: ' + values['T_HSV_H'] + ' S: ' + values['T_HSV_S'] + ' V: ' + values['T_HSV_V'])
 
         h = float(values['T_HSV_H'])
         s = float(values['T_HSV_S'])
         v = float(values['T_HSV_V'])
 
-        h_ = (h / 60) % 6
+        h_ = int(h / 60) % 6
         v_min = (100 - s) * v / 100
         a = (v - v_min) * (h % 60) / 60
         v_inc = v_min + a
@@ -481,22 +498,23 @@ while True:
         window['T_RGB_R'].update(r)
         window['T_RGB_G'].update(g)
         window['T_RGB_B'].update(b)
+        window['RGB'].update('R: ' + str(int(r)) + ' G: ' + str(int(g)) + ' B: ' + str(int(b)))
         text_color = '#'
 
-        if abs(r - round(r, 2)) < 0.001:
+        if abs(r - round(r)) < 0.001:
             r = round(round(r, 2))
-        if abs(g - round(g, 2)) < 0.001:
+        if abs(g - round(g)) < 0.001:
             g = round(round(g, 2))
-        if abs(b - round(b, 2)) < 0.001:
+        if abs(b - round(b)) < 0.001:
             b = round(round(b, 2))
+        r /= 2.55
+        g /= 2.55
+        b /= 2.55
         c_max = max(r, g, b)
         c_min = min(r, g, b)
         d = c_max - c_min
 
         if (max(r, g, b) != 0):
-            r /= 2.55
-            g /= 2.55
-            b /= 2.55
             window['T_CMYK_K'].update(float(100 - max(r, g, b)))
             window['T_CMYK_C'].update(float((c_max - r) / c_max) * 100)
             window['T_CMYK_M'].update(float((c_max - g) / c_max) * 100)
@@ -505,6 +523,7 @@ while True:
             window['SL_CMYK_C'].update(float((c_max - r) / c_max) * 100)
             window['SL_CMYK_M'].update(float((c_max - g) / c_max) * 100)
             window['SL_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
+            window['CMYK'].update('C: ' + str(int(((c_max - r) / c_max) * 100)) + ' M: ' + str(int(((c_max - g) / c_max) * 100)) + ' Y: ' + str(int(((c_max - b) / c_max) * 100)) + ' K: ' + str(int(100 - c_max)))
             r *= 2.55
             g *= 2.55
             b *= 2.55
@@ -529,75 +548,97 @@ while True:
 
         window['graph'].DrawRectangle((200, 200), (250, 300), fill_color=text_color)
 
-    if event == '-IN-':
-        r = float(int(values['-IN-'][1:3], 16)) / 2.55
-        g = float(int(values['-IN-'][3:5], 16)) / 2.55
-        b = float(int(values['-IN-'][5:7], 16)) / 2.55
-        c_max = max(r, g, b)
-        c_min = min(r, g, b)
-        d = c_max - c_min
+    if event == '-IN-' and values['-IN-'] is not None:
+        if re.match(r'#[0-9A-Fa-f]{6}', values['-IN-']):
+            r = float(int(values['-IN-'][1:3], 16)) / 2.55
+            g = float(int(values['-IN-'][3:5], 16)) / 2.55
+            b = float(int(values['-IN-'][5:7], 16)) / 2.55
+            c_max = max(r, g, b)
+            c_min = min(r, g, b)
+            d = c_max - c_min
 
-        window['T_RGB_R'].update(r * 2.55)
-        window['T_RGB_G'].update(g * 2.55)
-        window['T_RGB_B'].update(b * 2.55)
-        window['SL_RGB_R'].update(r * 2.55)
-        window['SL_RGB_G'].update(g * 2.55)
-        window['SL_RGB_B'].update(b * 2.55)
+            window['T_RGB_R'].update(r * 2.55)
+            window['T_RGB_G'].update(g * 2.55)
+            window['T_RGB_B'].update(b * 2.55)
+            window['SL_RGB_R'].update(r * 2.55)
+            window['SL_RGB_G'].update(g * 2.55)
+            window['SL_RGB_B'].update(b * 2.55)
 
-        if (max(r, g, b) != 0):
-            window['SL_CMYK_K'].update(float(100 - max(r, g, b)))
-            window['SL_CMYK_C'].update(float((c_max - r) / c_max) * 100)
-            window['SL_CMYK_M'].update(float((c_max - g) / c_max) * 100)
-            window['SL_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
-            window['T_CMYK_K'].update(float(100 - c_max))
-            window['T_CMYK_C'].update(float((c_max - r) / c_max) * 100)
-            window['T_CMYK_M'].update(float((c_max - g) / c_max) * 100)
-            window['T_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
-            text_color = '#'
-            if len(format(int(r * 2.55), 'X')) < 2:
-                text_color = text_color + '0' + format(int(r * 2.55), 'X')
+            if (max(r, g, b) != 0):
+                window['SL_CMYK_K'].update(float(100 - max(r, g, b)))
+                window['SL_CMYK_C'].update(float((c_max - r) / c_max) * 100)
+                window['SL_CMYK_M'].update(float((c_max - g) / c_max) * 100)
+                window['SL_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
+                window['T_CMYK_K'].update(float(100 - c_max))
+                window['T_CMYK_C'].update(float((c_max - r) / c_max) * 100)
+                window['T_CMYK_M'].update(float((c_max - g) / c_max) * 100)
+                window['T_CMYK_Y'].update(float((c_max - b) / c_max) * 100)
+                text_color = '#'
+                if len(format(int(r * 2.55), 'X')) < 2:
+                    text_color = text_color + '0' + format(int(r * 2.55), 'X')
+                else:
+                    text_color += format(int(r * 2.55), 'X')
+                if len(format(int(g * 2.55), 'X')) < 2:
+                    text_color = text_color + '0' + format(int(g * 2.55), 'X')
+                else:
+                    text_color += format(int(g * 2.55), 'X')
+                if len(format(int(b * 2.55), 'X')) < 2:
+                    text_color = text_color + '0' + format(int(b * 2.55), 'X')
+                else:
+                    text_color += format(int(b * 2.55), 'X')
             else:
-                text_color += format(int(r * 2.55), 'X')
-            if len(format(int(g * 2.55), 'X')) < 2:
-                text_color = text_color + '0' + format(int(g * 2.55), 'X')
+                text_color = '#000000'
+                window['T_CMYK_K'].update('100')
+                window['SL_CMYK_K'].update('100')
+
+            if c_max == r and d != 0 and g < b:
+                h = 60 * ((g - b) / d) % 360
+            elif c_max == r and d != 0 and g >= b:
+                h = 60 * ((g - b) / d)
+            elif c_max == g and d != 0:
+                h = 60 * (((b - r) / d) + 2) % 360
+            elif c_max == b and d != 0:
+                h = 60 * (((r - g) / d) + 4) % 360
             else:
-                text_color += format(int(g * 2.55), 'X')
-            if len(format(int(b * 2.55), 'X')) < 2:
-                text_color = text_color + '0' + format(int(b * 2.55), 'X')
+                h = 0
+            if c_max == 0:
+                s = 0
             else:
-                text_color += format(int(b * 2.55), 'X')
+                s = 100 * d / c_max
+            v = c_max
+
+            window['T_HSV_H'].update(h)
+            window['T_HSV_S'].update(s)
+            window['T_HSV_V'].update(v)
+            window['SL_HSV_H'].update(h)
+            window['SL_HSV_S'].update(s)
+            window['SL_HSV_V'].update(v)
+
+            window['-IN-'].update(text_color)
+    
+            window['graph'].DrawRectangle((200, 200), (250, 300), fill_color=text_color)
+
         else:
-            text_color = '#000000'
-            window['T_CMYK_K'].update('100')
-            window['SL_CMYK_K'].update('100')
-
-        if c_max == r and d != 0 and g < b:
-            h = 60 * ((g - b) / d) % 360
-        elif c_max == r and d != 0 and g >= b:
-            h = 60 * ((g - b) / d)
-        elif c_max == g and d != 0:
-            h = 60 * (((b - r) / d) + 2) % 360
-        elif c_max == b and d != 0:
-            h = 60 * (((r - g) / d) + 4) % 360
-        else:
-            h = 0
-        if c_max == 0:
-            s = 0
-        else:
-            s = 100 * d / c_max
-        v = c_max
-
-        window['T_HSV_H'].update(h)
-        window['T_HSV_S'].update(s)
-        window['T_HSV_V'].update(v)
-        window['SL_HSV_H'].update(h)
-        window['SL_HSV_S'].update(s)
-        window['SL_HSV_V'].update(v)
-
-        window['-IN-'].update(text_color)
-
-        window['graph'].DrawRectangle((200, 200), (250, 300), fill_color=text_color)
-
+            window['T_HSV_H'].update(0)
+            window['T_HSV_S'].update(0)
+            window['T_HSV_V'].update(0)
+            window['SL_HSV_H'].update(0)
+            window['SL_HSV_S'].update(0)
+            window['SL_HSV_V'].update(0)
+            window['SL_CMYK_K'].update(0)
+            window['SL_CMYK_C'].update(0)
+            window['SL_CMYK_M'].update(0)
+            window['SL_CMYK_Y'].update(0)
+            window['T_CMYK_K'].update(0)
+            window['T_CMYK_C'].update(0)
+            window['T_CMYK_M'].update(0)
+            window['T_CMYK_Y'].update(0)
+            window['T_RGB_R'].update(0)
+            window['T_RGB_G'].update(0)
+            window['T_RGB_B'].update(0)
+            window['SL_RGB_R'].update(0)
+            window['SL_RGB_G'].update(0)
+            window['SL_RGB_B'].update(0)
         
         
 
